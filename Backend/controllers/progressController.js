@@ -54,7 +54,9 @@ const completeLesson = async (req, res) => {
             });
         }
 
-        if (progress.completedLessons.includes(lessonId)) {
+        if (progress.completedLessons.some(
+            (id) => id.toString() === lessonId.toString()
+        )) {
             return res.status(200).json({
                 message: "Lesson already completed!",
                 progress
