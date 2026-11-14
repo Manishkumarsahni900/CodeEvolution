@@ -9,6 +9,7 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const testRoutes = require("./routes/testRoutes");
 const progressRoutes = require("./routes/progressRoutes");
+const submissionRoutes = require("./routes/submissionRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -33,6 +34,8 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/progress", progressRoutes);
 // Test Routes
 app.use("/api/tests", testRoutes);
+// Submission Routes
+app.use("/api/submissions", submissionRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
