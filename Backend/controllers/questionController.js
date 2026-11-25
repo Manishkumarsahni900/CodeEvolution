@@ -50,7 +50,7 @@ const createQuestion = async (req, res) => {
 const getQuestions = async (req, res) => {
     try {
         const questions = await Question.find()
-            .select("-testCases")
+            .select("-testCases -correctAnswer")
             .sort({ createdAt: -1 });
 
         res.status(200).json({

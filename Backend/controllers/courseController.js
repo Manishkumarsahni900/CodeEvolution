@@ -1,4 +1,5 @@
 const Course = require("../models/Course");
+const mongoose = require("mongoose");
 
 // Create Course
 const createCourse = async (req, res) => {
@@ -8,6 +9,11 @@ const createCourse = async (req, res) => {
         if (!title || !description || !language) {
             return res.status(400).json({
                 message: "Title, description and language are required."
+            });
+        }
+        if (!["Java", "C", "C++", "Python", "JavaScript"].includes(language)) {
+            return res.status(400).json({
+                message: "Invalid programming language."
             });
         }
         // Create new course
@@ -55,6 +61,11 @@ const getCourses = async (req, res) => {
 // Get Single Course
 const getCourseById = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Course ID."
+            });
+        }
         const course = await Course.findById(req.params.id)
             .populate("createdBy", "name email");
 
@@ -80,6 +91,11 @@ const getCourseById = async (req, res) => {
 // Update Course
 const updateCourse = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Course ID."
+            });
+        }
         const course = await Course.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -108,6 +124,11 @@ const updateCourse = async (req, res) => {
 // Delete Course
 const deleteCourse = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Course ID."
+            });
+        }
         const course = await Course.findByIdAndDelete(req.params.id);
 
         if (!course) {

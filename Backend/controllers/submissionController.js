@@ -24,7 +24,6 @@ const runCode = async (req, res) => {
         }
 
         const question = await Question.findById(questionId);
-
         if (!question || question.type !== "Coding") {
             return res.status(404).json({
                 message: "Coding question not found!"

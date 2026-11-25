@@ -15,12 +15,13 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const studentMiddleware = require("../middleware/studentMiddleware");
 
 // Get All Tests (Public)
 router.get("/", getTests);
 
 // Get Logged-in Student's Results
-router.get("/my-results", authMiddleware, getMyResults);
+router.get("/my-results", authMiddleware, studentMiddleware, getMyResults);
 
 // Get All Results (Admin Only)
 router.get("/all-results", authMiddleware, adminMiddleware, getAllResults);
@@ -38,7 +39,7 @@ router.patch("/:id", authMiddleware, adminMiddleware, updateTest);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteTest);
 
 // Submit Test (Student Only)
-router.post("/:id/submit", authMiddleware, submitTest);
+router.post("/:id/submit", authMiddleware, studentMiddleware, submitTest);
 
 // Create Test (Admin Only)
 router.post("/", authMiddleware, adminMiddleware, createTest);
