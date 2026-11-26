@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Test = require("../models/Test");
 const TestResult = require("../models/TestResult");
 const Progress = require("../models/Progress");
@@ -15,9 +16,74 @@ const createTest = async (req, res) => {
             level
         } = req.body;
 
-        if (!title || !duration || !totalMarks) {
+        if (typeof title !== "string" || !title.trim() || !duration || !totalMarks){
             return res.status(400).json({
                 message: "Title, duration and total marks are required."
+            });
+        }
+        if (!Number.isInteger(duration) || duration <= 0) {
+            return res.status(400).json({
+                message: "Duration must be a positive integer."
+            });
+        }
+        if (!Number.isFinite(totalMarks) || totalMarks <= 0) {
+            return res.status(400).json({
+                message: "Total marks must be a positive number."
+            });
+        }
+
+        if (
+            passingMarks !== undefined &&
+            (
+                !Number.isFinite(passingMarks) ||
+                passingMarks < 0 ||
+                passingMarks > totalMarks
+            )
+        ) {
+            return res.status(400).json({
+                message: "Passing marks must be between 0 and total marks."
+            });
+        }
+        if (
+            level !== undefined &&
+            !["Beginner", "Intermediate", "Advanced"].includes(level)
+        ) {
+            return res.status(400).json({
+                message: "Invalid test level."
+            });
+        }
+
+        if (!Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({
+                message: "At least one question is required."
+            });
+        }
+
+        const invalidQuestion = questions.some(
+            (id) => !mongoose.Types.ObjectId.isValid(id)
+        );
+        if (invalidQuestion) {
+            return res.status(400).json({
+                message: "One or more Question IDs are invalid."
+            });
+        }
+        const existingQuestions = await mongoose.model("Question").countDocuments({
+            _id: { $in: questions }
+        });
+
+        if (existingQuestions !== questions.length) {
+            return res.status(400).json({
+                message: "One or more questions do not exist."
+            });
+        }
+        const codingQuestions = await mongoose.model("Question").countDocuments({
+            _id: { $in: questions },
+            type: "Coding"
+        });
+
+        if (codingQuestions > 0) {
+            return res.status(400).json({
+                message: "Only MCQ questions are allowed in tests."
             });
         }
 
@@ -68,6 +134,11 @@ const getTests = async (req, res) => {
 // Get Single Test
 const getTestById = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Test ID."
+            });
+        }
         const test = await Test.findById(req.params.id)
             .populate("questions", "title description topic difficulty examples");
 
@@ -93,6 +164,11 @@ const getTestById = async (req, res) => {
 // Update Test
 const updateTest = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Test ID."
+            });
+        }
         const test = await Test.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -121,6 +197,11 @@ const updateTest = async (req, res) => {
 // Delete Test
 const deleteTest = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Test ID."
+            });
+        }
         const test = await Test.findByIdAndDelete(req.params.id);
 
         if (!test) {
@@ -145,6 +226,27 @@ const deleteTest = async (req, res) => {
 const submitTest = async (req, res) => {
     try {
         const { answers, timeTaken } = req.body;
+        if (!Array.isArray(answers)) {
+            return res.status(400).json({
+                message: "Answers must be an array."
+            });
+        }
+        for(const answer of answers) {
+            if (
+                !answer.question ||
+                !mongoose.Types.ObjectId.isValid(answer.question) ||
+                typeof answer.answer !== "string"
+            ) {
+                return res.status(400).json({
+                    message: "Invalid answer format."
+                });
+            }
+        }
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Test ID."
+            });
+        }
 
         const test = await Test.findById(req.params.id)
             .populate("questions");

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Submission = require("../models/Submission");
 const Question = require("../models/Question");
 const Progress = require("../models/Progress");
@@ -17,9 +18,15 @@ const runCode = async (req, res) => {
     try {
         const { questionId, sourceCode, language } = req.body;
 
-        if (!questionId || !sourceCode || !language) {
+        if (!questionId || typeof sourceCode !== "string" || !sourceCode.trim() || !language) {
             return res.status(400).json({
                 message: "Question ID, source code and language are required!"
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(questionId)) {
+            return res.status(400).json({
+                message: "Invalid Question ID."
             });
         }
 
@@ -27,6 +34,11 @@ const runCode = async (req, res) => {
         if (!question || question.type !== "Coding") {
             return res.status(404).json({
                 message: "Coding question not found!"
+            });
+        }
+        if (!question.testCases || question.testCases.length === 0) {
+            return res.status(400).json({
+                message: "No test cases available for this question."
             });
         }
 
@@ -65,9 +77,14 @@ const submitCode = async (req, res) => {
     try {
         const { questionId, sourceCode, language } = req.body;
 
-        if (!questionId || !sourceCode || !language) {
+        if (!questionId || typeof sourceCode !== "string" || !sourceCode.trim() || !language) {
             return res.status(400).json({
                 message: "Question ID, source code and language are required!"
+            });
+        }
+        if (!mongoose.Types.ObjectId.isValid(questionId)) {
+            return res.status(400).json({
+                message: "Invalid Question ID."
             });
         }
 
@@ -78,7 +95,11 @@ const submitCode = async (req, res) => {
                 message: "Coding question not found!"
             });
         }
-
+        if (!question.testCases || question.testCases.length === 0) {
+            return res.status(400).json({
+                message: "No test cases available for this question."
+            });
+        }
         const languageId = languageIds[language];
 
         if (!languageId) {

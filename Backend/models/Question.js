@@ -57,7 +57,8 @@ const questionSchema = new mongoose.Schema({
 
     points: {
         type: Number,
-        default: 10
+        default: 10,
+        min: [1, "Points must be at least 1."]
     }
 
 }, { timestamps: true });

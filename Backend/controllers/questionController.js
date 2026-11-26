@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Question = require("../models/Question");
 
 // Create Question
@@ -8,6 +9,7 @@ const createQuestion = async (req, res) => {
             description,
             topic,
             difficulty,
+            type,
             constraints,
             examples,
             testCases,
@@ -27,6 +29,7 @@ const createQuestion = async (req, res) => {
             description,
             topic,
             difficulty,
+            type,
             constraints,
             examples,
             testCases,
@@ -39,6 +42,11 @@ const createQuestion = async (req, res) => {
         });
 
     } catch (error) {
+        if (error.name === "ValidationError") {
+            return res.status(400).json({
+                message: error.message
+            });
+        }
         res.status(500).json({
             message: "Server Error",
             error: error.message
@@ -70,6 +78,13 @@ const getQuestions = async (req, res) => {
 // Get Single Question
 const getQuestionById = async (req, res) => {
     try {
+        //Validate Question id
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Question ID."
+            });
+        }
+
         const question = await Question.findById(req.params.id)
             .select("-testCases");
 
@@ -95,6 +110,11 @@ const getQuestionById = async (req, res) => {
 // Update Question
 const updateQuestion = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Question ID."
+            });
+        }
         const question = await Question.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -113,6 +133,11 @@ const updateQuestion = async (req, res) => {
         });
 
     } catch (error) {
+        if (error.name === "ValidationError") {
+            return res.status(400).json({
+                message: error.message
+            });
+        }
         res.status(500).json({
             message: "Server Error",
             error: error.message
@@ -123,6 +148,11 @@ const updateQuestion = async (req, res) => {
 // Delete Question
 const deleteQuestion = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid Question ID."
+            });
+        }
         const question = await Question.findByIdAndDelete(req.params.id);
 
         if (!question) {
